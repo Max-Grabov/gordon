@@ -49,7 +49,6 @@ bool handleEvents()
 	{
 		return true;
 	}
-
 }
 
 bool Camera::openCameraStream()
