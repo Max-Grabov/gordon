@@ -59,6 +59,9 @@ def compute_mirror_angles(s,e,w,p):
     t3 = np.arctan2((p[1]-w[1])*A[7], (p[2]-w[2])*A[8])
     return [float(t0),float(t1),float(t2),float(t3)]
 
+def transform_to_motor_angle_range(lower_angle_bound: float, higher_angle_bound: float, input_angle: float, counterclockwise: bool):
+
+    
 def thetas_to_motor_turns(thetas):
     names=["base_yaw","base_pitch","elbow","wrist_pitch"]
     return [(th/(2*np.pi))*config.GEAR_RATIO[nm] for th,nm in zip(thetas,names)]
