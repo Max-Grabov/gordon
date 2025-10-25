@@ -1,3 +1,4 @@
-packages/control/build/
+packages/control/lib/bazel-*
+packages/control/bazel-*
 packages/control/compile_commands_json/
 .vscode/
