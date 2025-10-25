@@ -1,4 +1,11 @@
-# The bazelrc file for MediaPipe OSS.
+build --enable_workspace
+build -c opt 
+build --copt=-I/usr/include/opencv4 
+build --action_env=CC=/usr/bin/clang-16 
+build --action_env=CXX=/usr/bin/clang++-16 
+build --host_action_env=CC=/usr/bin/clang-16 
+build --host_action_env=CXX=/usr/bin/clang++-16 
+build --incompatible_disallow_empty_glob=false
 
 # Tensorflow needs remote repo
 common --experimental_repo_remote_exec

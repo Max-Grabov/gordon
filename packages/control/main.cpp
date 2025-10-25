@@ -1,6 +1,7 @@
-#include <iostream>
+#include "Application.hpp"
 
 int main(int argc, char *argv[])
 {
-	std::cout << "finally starting the app\n";
+	Gordon::Application app;
+	app.run();
 }
