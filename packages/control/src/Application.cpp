@@ -8,66 +8,63 @@
 
 namespace Gordon
 {
-Application::Application() : running_(false)
+Application::Application() : camera_(cvVidCap()), camera_event_queue_(std::make_shared<EventQueue>()), state_("Idle"), running_(false)
 {
 	// Load all of the maps whatever we need later
-	std::cout << "sup\n";
-	control_modes_.emplace("Recording", std::make_unique<Recording>());
-	control_modes_.emplace("Mirroring", std::make_unique<Mirroring>());
+	std::cout << "Constructed\n";
+
+	control_modes_.emplace("Record", std::make_unique<Recording>());
+	control_modes_.emplace("Mirror", std::make_unique<Mirroring>());
 }
 
 Application::~Application()
 {
-	std::cout << "destroyed\n";
+	std::cout << "Destroyed\n";
 }
 
-void handleEvents()
+void handleEvents(const std::string &event)
 {
-	// TODO GET THE STRING FROM SOMEWHERE!
+	// TODO GET THE STRING FROM SOMEWHERE NOT PARAMETER!
 	
-	std::string event{"Mirror"};
-	if(event == "Idle")
+	if(!events_.contains(event))
 	{
-		//DO IDLE
+		state_ = "Exit";
 	}
-	else if(event == "Mirror")
-	{
-		camera_event_queue_->push("Mirror");
-	}
-	else if(event == "Record")
-	{
-		camera_event_queue_->push("Record");
-	}
-	else if(event == "Exit")
-	{
-		camera_event_queue_->push("Exit");
-		running = false_;
+	else
+	{		
+		state_ = event;
 	}
 }
 
+void processState()
+{
+	camera_event_queue->push(event);
+
+	// Before started next application loop, store a conditional variable
+	// Camera will send a signal when it is ready, for maximum safety - Max
+	if(state_ == "Exit")
+	{
+		running_ = false;
+		return;
+	}
+	else if(state_ == "Idle")
+	{
+		continue;
+	}
+	
+	// We are guarranteed to have a valid state at this point, so we can just go into the map
+	control_modes_[state_]->run();
+}
 void Application::run()
-{
-
-	// Launch Thread for Camera using jthread
-	
-	// Test for making the image to get bazel to build
-	std::cout << "Generating le image\n";
-	std::string input{"sample_images/gettyimages-1685801220-612x612.jpg"};
-	std::string hand_task{"lib/mediapipe/test/models/hand_landmarker.task"};
-	std::string pose_task{"lib/mediapipe/test/models/pose_landmarker_full.task"};
-
-	const auto output = ImageUtils::generatePoseImage(input, hand_task, pose_task);
-
-	std::string output_path = input + ".epic_output.png";
-
-	if (!cv::imwrite(output_path, output)) {
-    std::cerr << "failed to write " << output_path << "\n";
-  } else {
-    std::cout << "Saved overlay: " << output_path << "\n";
-  }
-
-	control_modes_["Recording"]->run();
-	control_modes_["Mirroring"]->run();
+{	
+	// Launch Thread for Camera using jthread TODO
+	std::string event{"Mirror"};
+	while(1)
+	{	
+		// FOR NOW TAKE IN A STRING BUT WE SHOULD GET THE STRING FROM VOICE PYTHON TBA
+		handleEvents(event);
+		processState();
+	}
 }
 }
 

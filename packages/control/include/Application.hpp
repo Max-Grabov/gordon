@@ -21,14 +21,17 @@ public:
 
 	Application &operator=(const Application &&other) = delete;
 
-	~Application();	
+	~Application();
 
 	void run();
 private:
 	void handleEvents();
 
+	void processState();
+
 	Camera camera_;
-	std::shared_ptr<ThreadSafeQueue<std::shared_ptr<std::string>>> camera_event_queue_; 
+	std::unordered_set<std::string> events_{"Idle", "Exit", "Mirror", "Running"};
+	std::shared_ptr<ThreadSafeQueue<std::shared_ptr<std::string>>> camera_event_queue_;
   std::unordered_map<std::string, std::unique_ptr<Mode>> control_modes_;
 	std::string state_;
 	bool running_{false};
