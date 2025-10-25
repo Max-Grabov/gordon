@@ -1,6 +1,10 @@
 #pragma once
 
 #include "ImageUtils.hpp"
+#include "ThreadSafeQueue.hpp"
+#include "Mode.hpp"
+#include "Camera.hpp"
+#include <memory>
 
 namespace Gordon
 {
@@ -17,11 +21,16 @@ public:
 
 	Application &operator=(const Application &&other) = delete;
 
-	~Application();
+	~Application();	
 
 	void run();
 private:
-//	std::unordered_map<std::string, Modes> control_modes;
+	void handleEvents();
+
+	Camera camera_;
+	std::shared_ptr<ThreadSafeQueue<std::shared_ptr<std::string>>> camera_event_queue_; 
+  std::unordered_map<std::string, std::unique_ptr<Mode>> control_modes_;
+	std::string state_;
 	bool running_{false};
 };
 } 
