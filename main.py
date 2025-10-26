@@ -1,15 +1,16 @@
 import os, time, queue, threading, cv2, numpy as np
+import serial
 from pathlib import Path
 
-from gordonpy import config
-from gordonpy.utils import norm_text
-from gordonpy.intents import INTENTS, INTENTS_NORM_MAP, match_intent_keyword
-from gordonpy.audio_io import AudioRing, UtteranceCapture, make_audio_cb, make_input_stream
-from gordonpy.vad import VADDetector
-from gordonpy.asr import AsrEngine
-from gordonpy.ui import UIState, draw_enhanced_ui
-from gordonpy.vision import MirrorProcessor
-from gordonpy.actions import (
+from src import config
+from src.utils import norm_text
+from src.intents import INTENTS, INTENTS_NORM_MAP, match_intent_keyword
+from src.audio_io import AudioRing, UtteranceCapture, make_audio_cb, make_input_stream
+from src.vad import VADDetector
+from src.asr import AsrEngine
+from src.ui import UIState, draw_enhanced_ui
+from src.vision import MirrorProcessor
+from src.actions import (
     ActionRecorder, ActionLibrary, ScheduleParser,
     ReplaySpec, run_replay
 )
@@ -65,6 +66,19 @@ try: cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 except: pass
 cv2.namedWindow("Gordon", cv2.WINDOW_NORMAL)
 
+# DO THE ARDUINO GO
+arduino = serial.Serial('dev/tty/ACM0', 115200, timeout=3)
+
+def sendData(motor_0_data: float, motor_1_data: float, motor_2_data: float, motor_3_data: float):
+    arduino.write(motor_0_data)
+    time.sleep(0.25)
+    arduino.write(motor_1_data)
+    time.sleep(0.25)
+    arduino.write(motor_2_data)
+    time.sleep(0.25)
+    arduino.write(motor_3_data)
+    time.sleep(0.25)
+    
 # -----------------------------------------------------------------------------
 # Phase helper
 # -----------------------------------------------------------------------------
@@ -187,7 +201,7 @@ try:
             last_vad_check = now_mono
             tail = ring.get_tail(vad_window_s)
             if len(tail) > config.SR * 0.3:
-                from gordonpy.utils import rms
+                from src.utils import rms
                 if rms(tail) >= config.SPEAKING_RMS and vad.is_speech_present(tail):
                     try:
                         asr_in.put_nowait(("wake", tail.copy())); ui_state.is_processing=True
@@ -198,7 +212,7 @@ try:
         try:
             while True:
                 task_type, text = asr_out.get_nowait()
-                print(f"[ASR][{task_type}] '{text}'")
+                # print(f"[ASR][{task_type}] '{text}'")
                 ui_state.is_processing=False
                 if task_type == "wake" and text:
                     nt = norm_text(text); triggered=False
@@ -313,6 +327,11 @@ try:
             if k in (27, ord('q'), ord('Q')):
                 with state_lock: state["quit_flag"] = True
                 break
+            sendData(motor_0_data=mirror.prev_t0)
+            sendData(motor_1_data=mirror.prev_t1)
+            sendData(motor_2_data=mirror.prev_t2)
+            sendData(motor_3_data=mirror.prev_t3)
+            
 finally:
     with state_lock: state["running"]=False
     try:

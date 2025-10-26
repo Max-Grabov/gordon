@@ -53,10 +53,7 @@ def _euclid3(a,b): return float(np.linalg.norm(a-b))
 
 def compute_mirror_angles(s,e,w,p, self):
     A = config.ALPHA
-    if(w[0] > s[0]):
-        t0 = np.arctan((abs(w[0] - s[0])) / config.ALPHA_0)
-    else:
-        t0 = np.arctan((s[0] - w[0]) / config.ALPHA_0)
+    t0 = np.arctan((s[0] - w[0]) / config.ALPHA_0)
     t1 = np.arctan2((s[1]-e[1])*A[3], (e[2]-s[2])*A[4])
     t2 = np.arctan2((w[1]-e[1])*A[5], (w[2]-e[2])*A[6])
     t3 = np.arctan((w[1] - p[1]) / config.ALPHA_3)
@@ -69,9 +66,6 @@ def compute_mirror_angles(s,e,w,p, self):
         t3 = (self.prev_t3 + t3) / 2.31415926
         
     return [float(t0),float(t1),float(t2),float(t3)]
-
-def transform_to_motor_angle_range(lower_angle_bound: float, higher_angle_bound: float, input_angle: float, counterclockwise: bool):
-
     
 def thetas_to_motor_turns(thetas):
     names=["base_yaw","base_pitch","elbow","wrist_pitch"]
@@ -87,10 +81,14 @@ class MirrorProcessor:
         self.pose = PoseLandmarker.create_from_options(PoseLandmarkerOptions(
             base_options=BaseOptions(model_asset_path=config.POSE_TASK_PATH),
             running_mode=RunningMode.VIDEO, num_poses=1,
+            min_pose_detection_confidence=0.5,
+            min_tracking_confidence=0.5,
         ))
         self.hand = HandLandmarker.create_from_options(HandLandmarkerOptions(
             base_options=BaseOptions(model_asset_path=config.HAND_TASK_PATH),
             running_mode=RunningMode.VIDEO, num_hands=1,
+            min_hand_detection_confidence=0.5,
+            min_tracking_confidence=0.5,
         ))
         self.prev_theta = 0
         
@@ -169,6 +167,8 @@ class MirrorProcessor:
 
         return out_bgr, info
 
+    def sendData(self):
+        
     def close(self):
         try: self.pose.close()
         except: pass
