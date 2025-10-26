@@ -5,9 +5,10 @@ import urllib.request
 
 def norm_text(t: str) -> str:
     t = t.lower()
-    t = re.sub(r"[^a-z0-9\s]+", " ", t)
-    t = re.sub(r"\s+", " ", t).strip()
+    t = re.sub(r"[^a-z0-9\s]+", " ", t)   
+    t = re.sub(r"\s+", " ", t).strip()  
     return t
+ 
 
 def phrase_to_regex(phrase: str):
     p = norm_text(phrase)
