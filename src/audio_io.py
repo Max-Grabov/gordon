@@ -67,6 +67,7 @@ class UtteranceCapture:
             return arr
 
 def make_audio_cb(q):
+    from .audio_io import AudioPacket  # local import to avoid cycle when packaging
     def audio_cb(indata, frames, time_info, status):
         if status: print(f"[AUDIO] {status}", flush=True)
         data = indata.copy().reshape(-1)
@@ -76,3 +77,4 @@ def make_audio_cb(q):
 def make_input_stream(sr: int, blocksize: int, callback):
     sd.default.channels = 1; sd.default.samplerate = sr
     return sd.InputStream(dtype="float32", blocksize=blocksize, callback=callback)
+

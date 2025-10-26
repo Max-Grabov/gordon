@@ -22,9 +22,10 @@ def draw_enhanced_ui(frame, ui_state: UIState):
     cv2.rectangle(overlay, (0, 0), (w, 180), (0, 0, 0), -1)
     cv2.addWeighted(overlay, 0.3, frame, 0.7, 0, frame)
     cv2.putText(frame, f"FPS: {ui_state.fps:5.1f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,255,0), 2, cv2.LINE_AA)
-    phase_colors = {'idle':(128,128,128),'command':(0,215,255),'mirror':(0,255,0)}
+    phase_colors = {'idle':(128,128,128),'command':(0,215,255),'mirror':(0,255,0),'record':(0,0,255)}
     cv2.putText(frame, f"MODE: {ui_state.phase.upper()}", (10, 65), cv2.FONT_HERSHEY_SIMPLEX, 0.7, phase_colors.get(ui_state.phase,(255,255,255)), 2, cv2.LINE_AA)
 
+    # Audio meter
     meter_x, meter_y, meter_w, meter_h = 10, 85, 300, 20
     cv2.rectangle(frame, (meter_x, meter_y), (meter_x+meter_w, meter_y+meter_h), (50,50,50), -1)
     level_norm = min(ui_state.audio_level / config.MAX_RMS_DISPLAY, 1.0); level_w = int(meter_w * level_norm)
@@ -32,6 +33,11 @@ def draw_enhanced_ui(frame, ui_state: UIState):
     if level_w > 0: cv2.rectangle(frame, (meter_x, meter_y), (meter_x+level_w, meter_y+meter_h), level_color, -1)
     cv2.rectangle(frame, (meter_x, meter_y), (meter_x+meter_w, meter_y+meter_h), (255,255,255), 1)
     cv2.putText(frame, f"MIC: {ui_state.audio_level*100:.1f}%", (meter_x+meter_w+10, meter_y+15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1, cv2.LINE_AA)
+
+    # Recording badge
+    if ui_state.phase == "record":
+        rec_text = "REC \u25CF"
+        cv2.putText(frame, rec_text, (10, 110), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,255), 2, cv2.LINE_AA)
 
     if ui_state.is_listening or ui_state.is_processing:
         pulse_x, pulse_y = w-60, 40; pulse_t = time.time()
@@ -45,11 +51,11 @@ def draw_enhanced_ui(frame, ui_state: UIState):
         cv2.putText(frame, pulse_text, (pulse_x - sz[0] - 30, pulse_y + 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, pulse_color, 2, cv2.LINE_AA)
 
     if now < ui_state.wake_until:
-        cv2.putText(frame, "WAKE WORD DETECTED!", (10, 125), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,255,255), 2, cv2.LINE_AA)
+        cv2.putText(frame, "WAKE WORD DETECTED!", (10, 145), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,255,255), 2, cv2.LINE_AA)
 
     if now < ui_state.flash_until and ui_state.flash_message:
         alpha = (ui_state.flash_until - now)/1.5; color_intensity = int(255*alpha)
-        cv2.putText(frame, ui_state.flash_message, (10, 155), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,color_intensity,255), 2, cv2.LINE_AA)
+        cv2.putText(frame, ui_state.flash_message, (10, 170), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,color_intensity,255), 2, cv2.LINE_AA)
 
     if now < ui_state.transcript_until and ui_state.last_transcript:
         text = f'"{ui_state.last_transcript}"'

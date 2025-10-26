@@ -51,12 +51,23 @@ def _select_hand(hand_list, handedness_list, preferred="right"):
 
 def _euclid3(a,b): return float(np.linalg.norm(a-b))
 
-def compute_mirror_angles(s,e,w,p):
+def compute_mirror_angles(s,e,w,p, self):
     A = config.ALPHA
-    t0 = np.arctan2((w[0]-s[0])*A[1], (w[2]-s[2])*A[2])
+    if(w[0] > s[0]):
+        t0 = np.arctan((abs(w[0] - s[0])) / config.ALPHA_0)
+    else:
+        t0 = np.arctan((s[0] - w[0]) / config.ALPHA_0)
     t1 = np.arctan2((s[1]-e[1])*A[3], (e[2]-s[2])*A[4])
     t2 = np.arctan2((w[1]-e[1])*A[5], (w[2]-e[2])*A[6])
-    t3 = np.arctan2((p[1]-w[1])*A[7], (p[2]-w[2])*A[8])
+    t3 = np.arctan((w[1] - p[1]) / config.ALPHA_3)
+    if(self.prev_t0 == 0 or self.prev_t1 == 0 or self.prev_t2 == 0 or self.prev_t3 == 0):
+        a = 1
+    else:
+        t0 = (self.prev_t0 + t0) / 2.31415926
+        t1 = (self.prev_t1 + t1) / 2.31415926
+        t2 = (self.prev_t2 + t2) / 2.31415926
+        t3 = (self.prev_t3 + t3) / 2.31415926
+        
     return [float(t0),float(t1),float(t2),float(t3)]
 
 def transform_to_motor_angle_range(lower_angle_bound: float, higher_angle_bound: float, input_angle: float, counterclockwise: bool):
@@ -81,7 +92,12 @@ class MirrorProcessor:
             base_options=BaseOptions(model_asset_path=config.HAND_TASK_PATH),
             running_mode=RunningMode.VIDEO, num_hands=1,
         ))
-        self.prev_theta = None
+        self.prev_theta = 0
+        
+        self.prev_t0 = 0
+        self.prev_t1 = 0
+        self.prev_t2 = 0
+        self.prev_t3 = 0
 
     def process(self, frame_rgb, timestamp_ms):
         pose_res = self.pose.detect_for_video(mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb), timestamp_ms)
@@ -117,7 +133,12 @@ class MirrorProcessor:
                         (0,255,255) if info["claw_open"] else (0,165,255), 2, cv2.LINE_AA)
 
         if ready:
-            thetas = compute_mirror_angles(s,e,w,p)
+            thetas = compute_mirror_angles(s,e,w,p, self)
+            self.prev_t0 = thetas[0]
+            self.prev_t1 = thetas[1]
+            self.prev_t2 = thetas[2]
+            self.prev_t3 = thetas[3]
+            
             if self.prev_theta is None:
                 filt = np.array(thetas, dtype=np.float32)
             else:
@@ -134,6 +155,10 @@ class MirrorProcessor:
                 f"Theta_1 base pitch : {degs[1]:6.1f}",
                 f"Theta_2 elbow      : {degs[2]:6.1f}",
                 f"Theta_3 wrist pitch: {degs[3]:6.1f}",
+                f"S coordinate Value:  {s[0]} {s[1]} {s[2]}",
+                f"W coordinate Value:  {w[0]} {w[1]} {w[2]}",
+                f"E coordinate Value:  {e[0]} {e[1]} {e[2]}",
+                f"P coordinate Value:  {p[0]} {p[1]} {p[2]}",
             ]
             for i, line in enumerate(hud):
                 cv2.putText(out_bgr, line, (10, 200 + i*24),

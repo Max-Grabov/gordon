@@ -17,6 +17,8 @@ SPEAKING_RMS = 0.008
 MAX_RMS_DISPLAY = 0.15
 
 # Kinematics
+ALPHA_0 = 0.023
+ALPHA_3 = 0.140
 ALPHA = {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0}
 GEAR_RATIO = {"base_yaw": 1.0, "base_pitch": 1.0, "elbow": 1.0, "wrist_pitch": 1.0}
 CLAW_OPEN_THRESH = 0.12
