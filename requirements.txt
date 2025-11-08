@@ -1,7 +1,0 @@
-numpy
-torch
-sounddevice
-faster-whisper
-sentence-transformers
-opencv-python
-mediapipe
