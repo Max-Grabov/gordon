@@ -71,7 +71,7 @@ def compute_mirror_angles(s,e,w,p, self):
     return [float(t0),float(t1),float(t2),float(t3)]
 
 def transform_to_motor_angle_range(lower_angle_bound: float, higher_angle_bound: float, input_angle: float, counterclockwise: bool):
-
+    return input_angle
     
 def thetas_to_motor_turns(thetas):
     names=["base_yaw","base_pitch","elbow","wrist_pitch"]

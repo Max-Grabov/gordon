@@ -4,8 +4,8 @@ from sentence_transformers import SentenceTransformer
 from .utils import norm_text
 
 class AsrEngine:
-    def __init__(self, device="cuda"):
-        self.whisper = WhisperModel("tiny.en", device=device, compute_type="float16")
+    def __init__(self, device="cpu"):
+        self.whisper = WhisperModel("tiny.en", device=device, compute_type = "float16" if device == "cuda" else "float32")
         self.embedder = SentenceTransformer("all-MiniLM-L6-v2", device=device)
 
     def warmup(self, sr: int):

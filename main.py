@@ -14,6 +14,8 @@ from gordonpy.actions import (
     ReplaySpec, run_replay
 )
 
+import torch
+
 # -----------------------------------------------------------------------------
 # Setup
 # -----------------------------------------------------------------------------
@@ -48,7 +50,8 @@ utter = UtteranceCapture(config.SR)
 audio_cb = make_audio_cb(q_audio)
 stream = make_input_stream(config.SR, int(config.SR*0.04), audio_cb)
 
-asr = AsrEngine(device="cuda")
+device = "cuda" if torch.cuda.is_available() else "cpu"
+asr = AsrEngine(device=device)
 asr.warmup(config.SR)
 vad = VADDetector(config.SR)
 mirror = MirrorProcessor()
@@ -58,7 +61,7 @@ intent_refs = {k: asr.embed_bank(v) for k, v in INTENTS.items()}
 print("Ready!")
 
 # Camera
-cap = cv2.VideoCapture(config.CAM_INDEX, cv2.CAP_DSHOW if os.name=="nt" else 0)
+cap = cv2.VideoCapture(config.CAM_INDEX)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH,  config.FRAME_W)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.FRAME_H)
 try: cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
